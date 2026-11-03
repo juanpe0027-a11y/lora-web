@@ -45,7 +45,8 @@
 </main>
 <script>
   const BASE = 'https://lora-juanp-default-rtdb.europe-west1.firebasedatabase.app/v/';
-  const CONECTADO_MS = 60000, CADA_MS = 5000;
+  const CONECTADO_MS = 45000, CADA_MS = 5000;
+  let ultimo = null;
   const CLAVE = location.hash.slice(1);   // la clave va tras el # y nunca llega al servidor de la página
   const $ = id => document.getElementById(id);
 
@@ -87,13 +88,15 @@
     try {
       const r = await fetch(BASE + encodeURIComponent(CLAVE) + '/estado.json', { cache: 'no-store' });
       if (!r.ok) throw new Error(r.status);
-      pintar(await r.json());
+      ultimo = await r.json();
       $('red').textContent = 'En línea';
       $('red').className = 'etiqueta si';
     } catch (err) {
       $('red').textContent = 'Sin conexión';
       $('red').className = 'etiqueta no';
     }
+    // También sin internet: lo que deja de actualizarse tiene que pasar a rojo
+    pintar(ultimo);
   }
 
   pintar();
