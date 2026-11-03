@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>LoRa</title>
+<style>
+  :root { --fondo:#0f1214; --tarjeta:#1b2024; --borde:#2d343a; --texto:#f2f4f5; --suave:#a3acb3; --verde:#35c46b; --rojo:#ff5a52; --naranja:#ffa63d; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:560px; margin:0 auto; padding:16px; display:grid; gap:12px; }
+  h1 { margin:0; font-size:20px; font-weight:600; }
+  .cabecera { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .tarjeta { background:var(--tarjeta); border:1px solid var(--borde); border-radius:12px; padding:16px; }
+  .fila { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .nombre { font-size:18px; font-weight:600; }
+  .estado { font-weight:700; font-size:14px; }
+  .si { color:var(--verde); } .no { color:var(--rojo); }
+  .detalle { color:var(--suave); font-size:14px; margin-top:8px; }
+  .detalle a { color:var(--texto); }
+  .voltios { font-size:48px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .etiqueta { color:var(--suave); font-size:14px; }
+  .aviso { color:var(--naranja); font-size:14px; }
+  .rayas { display:inline-flex; align-items:flex-end; gap:3px; height:20px; vertical-align:middle; margin-left:6px; }
+  .rayas i { width:5px; background:var(--borde); border-radius:1px; }
+  .rayas i.on { background:var(--verde); }
+  .rayas i:nth-child(1){height:6px}.rayas i:nth-child(2){height:10px}.rayas i:nth-child(3){height:15px}.rayas i:nth-child(4){height:20px}
+</style>
+</head>
+<body>
+<main>
+  <div class="cabecera"><h1>LoRa</h1><span id="red" class="etiqueta">Cargando…</span></div>
+  <div id="aviso" class="aviso" hidden></div>
+  <section class="tarjeta">
+    <div class="etiqueta">Batería auxiliar</div>
+    <div class="fila">
+      <div class="voltios" id="voltios">--.-- V</div>
+      <div><div class="etiqueta">Relé</div><div class="nombre" id="rele">--</div></div>
+    </div>
+  </section>
+  <section class="tarjeta" id="coche"></section>
+  <section class="tarjeta" id="furgoneta"></section>
+</main>
+<script>
+  const BASE = 'https://lora-juanp-default-rtdb.europe-west1.firebasedatabase.app/v/';
+  const CONECTADO_MS = 60000, CADA_MS = 5000;
+  const CLAVE = location.hash.slice(1);   // la clave va tras el # y nunca llega al servidor de la página
+  const $ = id => document.getElementById(id);
+
+  const rayas = rssi => {
+    const n = rssi === 0 || rssi === undefined ? 0 : rssi > -90 ? 4 : rssi > -100 ? 3 : rssi > -110 ? 2 : 1;
+    return '<span class="rayas" aria-label="Cobertura ' + n + ' de 4">' + [0,1,2,3].map(i => '<i class="' + (i < n ? 'on' : '') + '"></i>').join('') + '</span>';
+  };
+
+  const conectado = d => !!d && !!d.hora && Date.now() - d.hora + (d.edad_s || 0) * 1000 < CONECTADO_MS;
+
+  function vehiculo(id, titulo, d, otro) {
+    const ok = conectado(d);
+    let gps = 'GPS sin conectar';
+    if (d && d.gps) gps = d.fix ? d.sats + ' satélites · ' + Math.round(d.vel || 0) + ' km/h' : 'Buscando GPS · ' + d.sats + ' satélites';
+    let posicion = '';
+    if (d && d.lat !== undefined) {
+      const c = Number(d.lat).toFixed(5) + ', ' + Number(d.lon).toFixed(5);
+      posicion = '<div class="detalle"><a href="https://www.google.com/maps?q=' + c.replace(' ', '') + '" target="_blank" rel="noopener">' + c + '</a></div>';
+    }
+    const lora = (d && d.rssi_lora) || (otro && otro.rssi_lora);
+    $(id).innerHTML =
+      '<div class="fila"><span class="nombre">' + titulo + '</span><span class="estado ' + (ok ? 'si' : 'no') + '">' + (ok ? 'CONECTADO' : 'NO CONECTADO') + '</span></div>' +
+      posicion +
+      '<div class="detalle">' + gps + ' · ' + (d && d.placa_v ? Number(d.placa_v).toFixed(2) + ' V' : 'USB') + '</div>' +
+      (ok && lora ? '<div class="detalle">LoRa ' + rayas(lora) + '</div>' : '');
+  }
+
+  function pintar(e) {
+    e = e || {};
+    vehiculo('coche', 'Coche', e.coche, e.furgoneta);
+    vehiculo('furgoneta', 'Furgoneta', e.furgoneta, e.coche);
+    const b = e.bateria, ok = conectado(b);
+    $('voltios').textContent = b ? Number(b.voltios).toFixed(2) + ' V' : '--.-- V';
+    $('voltios').style.color = !ok ? 'var(--suave)' : b.voltios < 11.8 ? 'var(--rojo)' : b.voltios < 12.2 ? 'var(--naranja)' : 'var(--verde)';
+    $('rele').textContent = b ? (b.rele ? 'ON' : 'OFF') : '--';
+  }
+
+  async function leer() {
+    try {
+      const r = await fetch(BASE + encodeURIComponent(CLAVE) + '/estado.json', { cache: 'no-store' });
+      if (!r.ok) throw new Error(r.status);
+      pintar(await r.json());
+      $('red').textContent = 'En línea';
+      $('red').className = 'etiqueta si';
+    } catch (err) {
+      $('red').textContent = 'Sin conexión';
+      $('red').className = 'etiqueta no';
+    }
+  }
+
+  pintar();
+  if (CLAVE.length < 24) {
+    $('aviso').hidden = false;
+    $('aviso').textContent = 'Abre esta página con tu enlace completo.';
+    $('red').textContent = '';
+  } else {
+    leer();
+    setInterval(leer, CADA_MS);
+  }
+</script>
+</body>
+</html>
