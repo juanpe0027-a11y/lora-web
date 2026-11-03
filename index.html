@@ -71,7 +71,7 @@
       '<div class="fila"><span class="nombre">' + titulo + '</span><span class="estado ' + (ok ? 'si' : 'no') + '">' + (ok ? 'CONECTADO' : 'NO CONECTADO') + '</span></div>' +
       posicion +
       '<div class="detalle">' + gps + ' · ' + (d && d.placa_v ? Number(d.placa_v).toFixed(2) + ' V' : 'USB') + '</div>' +
-      (ok && lora ? '<div class="detalle">LoRa ' + rayas(lora) + '</div>' : '');
+      (ok && conectado(otro) && lora ? '<div class="detalle">LoRa ' + rayas(lora) + '</div>' : '');
   }
 
   function pintar(e) {
