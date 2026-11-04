@@ -88,7 +88,7 @@
   </section>
   <section class="tarjeta" id="coche"></section>
   <section class="tarjeta" id="furgoneta"></section>
-  <section class="tarjeta ancho distancia"><span class="rotulo">Distancia entre vehículos</span><strong id="distancia">--</strong></section>
+  <section class="tarjeta ancho distancia"><span class="rotulo">Distancia</span><strong id="distancia">--</strong></section>
 </main>
 <script>
   const BASE = 'https://lora-juanp-default-rtdb.europe-west1.firebasedatabase.app/v/';
@@ -206,8 +206,8 @@
     e = e || {};
     bateria(e.bateria);
     rele(e.bateria);
-    vehiculo('coche', 'Coche', e.coche, e.furgoneta);
-    vehiculo('furgoneta', 'Furgoneta', e.furgoneta, e.coche);
+    vehiculo('coche', 'BATERIA 2', e.coche, e.furgoneta);
+    vehiculo('furgoneta', 'BATERIA 1', e.furgoneta, e.coche);
     const a = e.coche, b = e.furgoneta;
     if (a && b && a.lat !== undefined && b.lat !== undefined) {
       const d = distanciaKm(a, b);
