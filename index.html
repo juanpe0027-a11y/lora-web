@@ -103,6 +103,7 @@
   function rayas(n) {
     return '<span class="rayas" aria-label="Cobertura ' + n + ' de 4">' + [0,1,2,3].map(i => '<i class="' + (i < n ? 'on' : '') + '"></i>').join('') + '</span>';
   }
+  const escapar = s => String(s).replace(/[&<>"']/g, c => '&#' + c.charCodeAt(0) + ';');
   const rayasLora = r => r > -90 ? 4 : r > -100 ? 3 : r > -110 ? 2 : 1;
   const rayasWifi = r => r > -55 ? 4 : r > -65 ? 3 : r > -75 ? 2 : r > -85 ? 1 : 0;
   const fila = (t, v) => '<div class="fila"><b>' + t + '</b><span>' + v + '</span></div>';
@@ -116,7 +117,7 @@
       textoLora = '<span class="' + calidad[1] + '">' + lora + ' dB · ' + calidad[0] + '</span>' + rayas(rayasLora(lora));
     }
     let textoWifi = ok ? 'Por LoRa' : 'Sin datos';
-    if (d && d.wifi_hora && Date.now() - d.wifi_hora < CONECTADO_MS) textoWifi = 'Conectado' + rayas(rayasWifi(d.rssi_wifi));
+    if (d && d.wifi_hora && Date.now() - d.wifi_hora < CONECTADO_MS) textoWifi = (d.wifi_red ? escapar(d.wifi_red) : 'Conectado') + rayas(rayasWifi(d.rssi_wifi));
     let gps = 'Sin conectar';
     if (d && d.gps) gps = d.fix ? d.sats + ' satélites · ' + Math.round(d.vel || 0) + ' km/h' : 'Buscando · ' + d.sats + ' satélites';
     const corriente = d && d.placa_v ? 'Batería ' + Number(d.placa_v).toFixed(2) + ' V' : 'USB';
@@ -220,7 +221,7 @@
   const numero = v => { const n = Number(v); return Number.isFinite(n) ? n : 0; };
   function limpiarNodo(d) {
     if (!d || typeof d !== 'object') return undefined;
-    const r = { hora: numero(d.hora), edad_s: numero(d.edad_s), gps: d.gps === true, fix: d.fix === true, sats: numero(d.sats), vel: numero(d.vel), placa_v: numero(d.placa_v), rssi_lora: numero(d.rssi_lora), rssi_wifi: numero(d.rssi_wifi), wifi_hora: numero(d.wifi_hora) };
+    const r = { hora: numero(d.hora), edad_s: numero(d.edad_s), gps: d.gps === true, fix: d.fix === true, sats: numero(d.sats), vel: numero(d.vel), placa_v: numero(d.placa_v), rssi_lora: numero(d.rssi_lora), rssi_wifi: numero(d.rssi_wifi), wifi_hora: numero(d.wifi_hora), wifi_red: typeof d.wifi_red === 'string' ? d.wifi_red.slice(0, 32) : '' };
     if (d.lat !== undefined && Number.isFinite(Number(d.lat)) && Number.isFinite(Number(d.lon))) { r.lat = Number(d.lat); r.lon = Number(d.lon); }
     return r;
   }
