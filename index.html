@@ -2,86 +2,215 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#0d1117">
 <title>LoRa</title>
 <style>
-  :root { --fondo:#0f1214; --tarjeta:#1b2024; --borde:#2d343a; --texto:#f2f4f5; --suave:#a3acb3; --verde:#35c46b; --rojo:#ff5a52; --naranja:#ffa63d; }
-  * { box-sizing:border-box; }
-  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
-  main { max-width:560px; margin:0 auto; padding:16px; display:grid; gap:12px; }
-  h1 { margin:0; font-size:20px; font-weight:600; }
-  .cabecera { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .tarjeta { background:var(--tarjeta); border:1px solid var(--borde); border-radius:12px; padding:16px; }
-  .fila { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-  .nombre { font-size:18px; font-weight:600; }
-  .estado { font-weight:700; font-size:14px; }
-  .si { color:var(--verde); } .no { color:var(--rojo); }
-  .detalle { color:var(--suave); font-size:14px; margin-top:8px; }
-  .detalle a { color:var(--texto); }
-  .voltios { font-size:48px; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
-  .etiqueta { color:var(--suave); font-size:14px; }
-  .aviso { color:var(--naranja); font-size:14px; }
-  .rayas { display:inline-flex; align-items:flex-end; gap:3px; height:20px; vertical-align:middle; margin-left:6px; }
+  :root { --fondo:#0d1117; --tarjeta:#161b22; --tarjeta2:#1f2630; --borde:#2b333d; --texto:#f0f3f6; --suave:#9aa6b2; --verde:#3fb950; --verde-f:#143d22; --rojo:#f85149; --rojo-f:#4a1c1b; --naranja:#f0a13a; --naranja-f:#46311a; --azul:#58a6ff; }
+  @media (prefers-color-scheme: light) {
+    :root { --fondo:#f4f6f8; --tarjeta:#ffffff; --tarjeta2:#eef1f4; --borde:#d9dee4; --texto:#1b222a; --suave:#5d6875; --verde:#1a7f37; --verde-f:#dcf5e3; --rojo:#c9302a; --rojo-f:#fde5e4; --naranja:#a8620a; --naranja-f:#fbedd8; --azul:#0969da; }
+  }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:16px 16px 32px; display:grid; gap:12px; grid-template-columns:minmax(0,1fr); }
+  header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 2px 6px; }
+  h1 { margin:0; font-size:21px; font-weight:700; letter-spacing:-.01em; }
+  h2 { margin:0; font-size:17px; font-weight:650; }
+  .pastilla { display:inline-flex; align-items:center; gap:7px; padding:4px 11px; border-radius:99px; font-size:13px; font-weight:650; white-space:nowrap; }
+  .pastilla::before { content:""; width:8px; height:8px; border-radius:50%; background:currentColor; }
+  .si { color:var(--verde); background:var(--verde-f); }
+  .no { color:var(--rojo); background:var(--rojo-f); }
+  .tarjeta { background:var(--tarjeta); border:1px solid var(--borde); border-radius:14px; padding:16px; min-width:0; }
+  .rotulo { color:var(--suave); font-size:13px; font-weight:600; }
+  .aviso { color:var(--naranja); background:var(--naranja-f); border-radius:10px; padding:10px 12px; font-size:14px; }
+  .bateria { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-top:4px; }
+  .voltios { font-size:52px; font-weight:750; line-height:1.1; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+  .voltios small { font-size:24px; font-weight:650; margin-left:3px; }
+  .barra { height:8px; border-radius:9px; background:var(--tarjeta2); overflow:hidden; margin-top:12px; }
+  .barra i { display:block; height:100%; width:0; border-radius:9px; transition:width .4s; }
+  .escala { display:flex; justify-content:space-between; color:var(--suave); font-size:12px; margin-top:5px; font-variant-numeric:tabular-nums; }
+  .estado-bat { font-size:15px; font-weight:650; }
+  .rele { display:flex; align-items:center; justify-content:space-between; gap:14px; }
+  .rele-estado { font-size:26px; font-weight:750; }
+  .boton { position:relative; overflow:hidden; flex:0 1 230px; min-height:52px; padding:10px 14px; border-radius:11px; border:1px solid var(--borde); background:var(--tarjeta2); color:var(--texto); font:inherit; font-weight:650; font-size:15px; cursor:pointer; touch-action:none; user-select:none; -webkit-user-select:none; }
+  .boton:disabled { color:var(--suave); cursor:default; opacity:.75; }
+  .boton:focus-visible, .cab-veh:focus-visible { outline:2px solid var(--azul); outline-offset:2px; }
+  .boton span { position:relative; z-index:1; }
+  .boton i { position:absolute; inset:0 auto 0 0; width:0; background:var(--azul); opacity:.35; }
+  .boton.pulsado i { width:100%; transition:width .9s linear; }
+  .nota { color:var(--suave); font-size:13px; margin:10px 0 0; }
+  .cab-veh { width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:0; border:0; background:none; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+  .cab-veh h2::after { content:"▾"; color:var(--suave); font-size:13px; margin-left:7px; }
+  .abierto .cab-veh h2::after { content:"▴"; }
+  .resumen { color:var(--suave); font-size:14px; margin-top:4px; overflow-wrap:anywhere; }
+  .detalle { display:none; margin:12px 0 0; border-top:1px solid var(--borde); }
+  .abierto .detalle { display:block; }
+  .fila { display:flex; align-items:center; justify-content:space-between; gap:14px; min-height:42px; padding:7px 0; border-bottom:1px solid var(--borde); }
+  .fila:last-child { border-bottom:0; padding-bottom:0; }
+  .fila b { color:var(--suave); font-weight:550; font-size:14px; flex:none; }
+  .fila span { text-align:right; overflow-wrap:anywhere; font-weight:550; font-size:15px; }
+  .fila a { color:var(--azul); }
+  .c-verde { color:var(--verde); } .c-naranja { color:var(--naranja); } .c-rojo { color:var(--rojo); }
+  .rayas { display:inline-flex; align-items:flex-end; gap:3px; height:18px; vertical-align:-3px; margin-left:8px; }
   .rayas i { width:5px; background:var(--borde); border-radius:1px; }
   .rayas i.on { background:var(--verde); }
-  .rayas i:nth-child(1){height:6px}.rayas i:nth-child(2){height:10px}.rayas i:nth-child(3){height:15px}.rayas i:nth-child(4){height:20px}
+  .rayas i:nth-child(1){height:5px}.rayas i:nth-child(2){height:9px}.rayas i:nth-child(3){height:13px}.rayas i:nth-child(4){height:18px}
+  .distancia { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  .distancia strong { font-size:18px; font-variant-numeric:tabular-nums; }
+  @media (min-width:640px) { main { grid-template-columns:repeat(2,minmax(0,1fr)); } .ancho { grid-column:1 / -1; } }
+  @media (prefers-reduced-motion:reduce) { .barra i, .boton.pulsado i { transition:none; } }
 </style>
 </head>
 <body>
 <main>
-  <div class="cabecera"><h1>LoRa</h1><span id="red" class="etiqueta">Cargando…</span></div>
-  <div id="aviso" class="aviso" hidden></div>
-  <section class="tarjeta">
-    <div class="etiqueta">Batería auxiliar</div>
-    <div class="fila">
-      <div class="voltios" id="voltios">--.-- V</div>
-      <div><div class="etiqueta">Relé</div><div class="nombre" id="rele">--</div></div>
+  <header class="ancho"><h1>Control LoRa</h1><span id="red" class="pastilla no">Cargando</span></header>
+  <div id="aviso" class="aviso ancho" hidden></div>
+  <section class="tarjeta ancho" aria-labelledby="t-bat">
+    <div class="rotulo" id="t-bat">Batería auxiliar</div>
+    <div class="bateria">
+      <div class="voltios" id="voltios">--.--<small>V</small></div>
+      <div class="estado-bat" id="estado-bat"></div>
     </div>
+    <div class="barra" aria-hidden="true"><i id="barra"></i></div>
+    <div class="escala" aria-hidden="true"><span>10,5 V</span><span>12,2 V</span><span>14,8 V</span></div>
+  </section>
+  <section class="tarjeta ancho" aria-labelledby="t-rele">
+    <div class="rele">
+      <div><div class="rotulo" id="t-rele">Relé</div><div class="rele-estado" id="rele">--</div></div>
+      <button class="boton" id="boton-rele" type="button" disabled><i></i><span id="texto-rele">No disponible</span></button>
+    </div>
+    <p class="nota" id="nota-rele">Se activará cuando esté conectado el lector de batería.</p>
   </section>
   <section class="tarjeta" id="coche"></section>
   <section class="tarjeta" id="furgoneta"></section>
+  <section class="tarjeta ancho distancia"><span class="rotulo">Distancia entre vehículos</span><strong id="distancia">--</strong></section>
 </main>
 <script>
   const BASE = 'https://lora-juanp-default-rtdb.europe-west1.firebasedatabase.app/v/';
-  const CONECTADO_MS = 45000, CADA_MS = 5000;
-  let ultimo = null;
+  const CONECTADO_MS = 45000, CADA_MS = 5000, PULSACION_MS = 900, ORDEN_MS = 60000;
   const CLAVE = location.hash.slice(1);   // la clave va tras el # y nunca llega al servidor de la página
   const $ = id => document.getElementById(id);
-
-  const rayas = rssi => {
-    const n = rssi === 0 || rssi === undefined ? 0 : rssi > -90 ? 4 : rssi > -100 ? 3 : rssi > -110 ? 2 : 1;
-    return '<span class="rayas" aria-label="Cobertura ' + n + ' de 4">' + [0,1,2,3].map(i => '<i class="' + (i < n ? 'on' : '') + '"></i>').join('') + '</span>';
-  };
+  let ultimo = null;
+  const abiertos = {};
 
   const conectado = d => !!d && !!d.hora && Date.now() - d.hora + (d.edad_s || 0) * 1000 < CONECTADO_MS;
 
+  function rayas(n) {
+    return '<span class="rayas" aria-label="Cobertura ' + n + ' de 4">' + [0,1,2,3].map(i => '<i class="' + (i < n ? 'on' : '') + '"></i>').join('') + '</span>';
+  }
+  const rayasLora = r => r > -90 ? 4 : r > -100 ? 3 : r > -110 ? 2 : 1;
+  const rayasWifi = r => r > -55 ? 4 : r > -65 ? 3 : r > -75 ? 2 : r > -85 ? 1 : 0;
+  const fila = (t, v) => '<div class="fila"><b>' + t + '</b><span>' + v + '</span></div>';
+
   function vehiculo(id, titulo, d, otro) {
-    const ok = conectado(d);
-    let gps = 'GPS sin conectar';
-    if (d && d.gps) gps = d.fix ? d.sats + ' satélites · ' + Math.round(d.vel || 0) + ' km/h' : 'Buscando GPS · ' + d.sats + ' satélites';
-    let posicion = '';
+    const ok = conectado(d), enlace = ok && conectado(otro);
+    const lora = d && d.rssi_lora;
+    let textoLora = '<span class="c-rojo">Sin señal</span>';
+    if (enlace && lora) {
+      const calidad = lora > -90 ? ['Muy buena', 'c-verde'] : lora > -110 ? ['Buena', 'c-naranja'] : ['Mala', 'c-rojo'];
+      textoLora = '<span class="' + calidad[1] + '">' + lora + ' dB · ' + calidad[0] + '</span>' + rayas(rayasLora(lora));
+    }
+    let textoWifi = ok ? 'Por LoRa' : 'Sin datos';
+    if (ok && d.rssi_wifi) textoWifi = 'Conectado' + rayas(rayasWifi(d.rssi_wifi));
+    let gps = 'Sin conectar';
+    if (d && d.gps) gps = d.fix ? d.sats + ' satélites · ' + Math.round(d.vel || 0) + ' km/h' : 'Buscando · ' + d.sats + ' satélites';
+    const corriente = d && d.placa_v ? 'Batería ' + Number(d.placa_v).toFixed(2) + ' V' : 'USB';
+    let posicion = 'Sin posición';
     if (d && d.lat !== undefined) {
       const c = Number(d.lat).toFixed(5) + ', ' + Number(d.lon).toFixed(5);
-      posicion = '<div class="detalle"><a href="https://www.google.com/maps?q=' + c.replace(' ', '') + '" target="_blank" rel="noopener">' + c + '</a></div>';
+      posicion = '<a href="https://www.google.com/maps?q=' + c.replace(' ', '') + '" target="_blank" rel="noopener">' + c + '</a>';
     }
-    const lora = (d && d.rssi_lora) || (otro && otro.rssi_lora);
-    $(id).innerHTML =
-      '<div class="fila"><span class="nombre">' + titulo + '</span><span class="estado ' + (ok ? 'si' : 'no') + '">' + (ok ? 'CONECTADO' : 'NO CONECTADO') + '</span></div>' +
-      posicion +
-      '<div class="detalle">' + gps + ' · ' + (d && d.placa_v ? Number(d.placa_v).toFixed(2) + ' V' : 'USB') + '</div>' +
-      (ok && conectado(otro) && lora ? '<div class="detalle">LoRa ' + rayas(lora) + '</div>' : '');
+    const caja = $(id);
+    caja.className = 'tarjeta' + (abiertos[id] ? ' abierto' : '');
+    caja.innerHTML =
+      '<button class="cab-veh" type="button" aria-expanded="' + !!abiertos[id] + '"><h2>' + titulo + '</h2>' +
+      '<span class="pastilla ' + (ok ? 'si' : 'no') + '">' + (ok ? 'CONECTADO' : 'NO CONECTADO') + '</span></button>' +
+      '<div class="resumen">LoRa: ' + (enlace && lora ? lora + ' dB' : 'sin señal') + ' · GPS: ' + (d && d.gps ? (d.fix ? 'con posición' : 'buscando') : 'sin conectar') + '</div>' +
+      '<div class="detalle">' + fila('Wi-Fi', textoWifi) + fila('Enlace LoRa', textoLora) + fila('GPS', gps) + fila('Posición', posicion) + fila('Alimentación', corriente) + '</div>';
+    caja.querySelector('.cab-veh').onclick = () => { abiertos[id] = !abiertos[id]; pintar(ultimo); };
   }
+
+  function bateria(b) {
+    const ok = conectado(b), v = b ? Number(b.voltios) : 0;
+    $('voltios').innerHTML = (b ? v.toFixed(2) : '--.--') + '<small>V</small>';
+    let color = 'var(--suave)', texto = b ? 'Sin datos recientes' : 'Sin lector conectado';
+    if (ok) {
+      if (v < 11.8) { color = 'var(--rojo)'; texto = 'Muy baja'; }
+      else if (v < 12.2) { color = 'var(--naranja)'; texto = 'Baja'; }
+      else if (v >= 13.2) { color = 'var(--verde)'; texto = 'Cargando'; }
+      else { color = 'var(--verde)'; texto = 'Correcta'; }
+    }
+    $('voltios').style.color = color;
+    $('estado-bat').textContent = texto;
+    $('estado-bat').style.color = color;
+    $('barra').style.width = b ? Math.max(0, Math.min(100, (v - 10.5) / 4.3 * 100)) + '%' : '0';
+    $('barra').style.background = color;
+  }
+
+  function distanciaKm(a, b) {
+    const g = Math.PI / 180, la1 = a.lat * g, la2 = b.lat * g, dLa = la2 - la1, dLo = (b.lon - a.lon) * g;
+    const h = Math.sin(dLa / 2) ** 2 + Math.cos(la1) * Math.cos(la2) * Math.sin(dLo / 2) ** 2;
+    return 2 * 6371 * Math.asin(Math.sqrt(h));
+  }
+
+  // --- Relé: pulsación larga y confirmación real antes de cambiar de estado ---
+  let orden = null, temporizador = null;
+  const boton = $('boton-rele');
+
+  function rele(b) {
+    const ok = conectado(b), encendido = !!(b && b.rele);
+    if (orden && b && encendido === orden.encender) { orden = null; $('nota-rele').textContent = 'Orden confirmada por el relé.'; }
+    else if (orden && Date.now() - orden.desde > ORDEN_MS) { orden = null; $('nota-rele').textContent = 'No se ha confirmado: la orden ha caducado y no se aplicará más tarde.'; }
+    $('rele').textContent = b ? (encendido ? 'ON' : 'OFF') : '--';
+    $('rele').style.color = !ok ? 'var(--suave)' : encendido ? 'var(--verde)' : 'var(--rojo)';
+    boton.disabled = !ok || !!orden;
+    if (orden) { $('texto-rele').textContent = 'Enviando…'; $('nota-rele').textContent = 'Esperando confirmación. Puede tardar hasta un minuto.'; }
+    else if (!ok) { $('texto-rele').textContent = 'No disponible'; if (!b) $('nota-rele').textContent = 'Se activará cuando esté conectado el lector de batería.'; else $('nota-rele').textContent = 'El lector de batería no está enviando datos.'; }
+    else { $('texto-rele').textContent = 'Mantén pulsado para ' + (encendido ? 'apagar' : 'encender'); if (!$('nota-rele').textContent.startsWith('No se ha') && !$('nota-rele').textContent.startsWith('Orden')) $('nota-rele').textContent = 'Mantenlo pulsado casi un segundo para evitar toques sin querer.'; }
+  }
+
+  async function enviarOrden() {
+    const encender = !(ultimo && ultimo.bateria && ultimo.bateria.rele);
+    const id = Math.floor(Math.random() * 4e9) + 1;
+    orden = { encender, desde: Date.now() };
+    pintar(ultimo);
+    try {
+      const r = await fetch(BASE + encodeURIComponent(CLAVE) + '/orden.json', { method: 'PUT', body: JSON.stringify({ id, encender, hora: { '.sv': 'timestamp' } }) });
+      if (!r.ok) throw new Error(r.status);
+    } catch (err) {
+      orden = null;
+      $('nota-rele').textContent = 'No se ha podido enviar la orden. Revisa la conexión.';
+      pintar(ultimo);
+    }
+  }
+
+  function soltar() { clearTimeout(temporizador); boton.classList.remove('pulsado'); }
+  boton.addEventListener('pointerdown', ev => {
+    if (boton.disabled) return;
+    ev.preventDefault();
+    boton.classList.add('pulsado');
+    temporizador = setTimeout(() => { soltar(); enviarOrden(); }, PULSACION_MS);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(n => boton.addEventListener(n, soltar));
+  boton.addEventListener('contextmenu', ev => ev.preventDefault());
+  boton.addEventListener('keydown', ev => { if ((ev.key === ' ' || ev.key === 'Enter') && !ev.repeat && !boton.disabled) { ev.preventDefault(); boton.classList.add('pulsado'); temporizador = setTimeout(() => { soltar(); enviarOrden(); }, PULSACION_MS); } });
+  boton.addEventListener('keyup', soltar);
 
   function pintar(e) {
     e = e || {};
+    bateria(e.bateria);
+    rele(e.bateria);
     vehiculo('coche', 'Coche', e.coche, e.furgoneta);
     vehiculo('furgoneta', 'Furgoneta', e.furgoneta, e.coche);
-    const b = e.bateria, ok = conectado(b);
-    $('voltios').textContent = b ? Number(b.voltios).toFixed(2) + ' V' : '--.-- V';
-    $('voltios').style.color = !ok ? 'var(--suave)' : b.voltios < 11.8 ? 'var(--rojo)' : b.voltios < 12.2 ? 'var(--naranja)' : 'var(--verde)';
-    $('rele').textContent = b ? (b.rele ? 'ON' : 'OFF') : '--';
+    const a = e.coche, b = e.furgoneta;
+    if (a && b && a.lat !== undefined && b.lat !== undefined) {
+      const d = distanciaKm(a, b);
+      $('distancia').textContent = d < 1 ? Math.round(d * 1000) + ' m' : d.toFixed(2).replace('.', ',') + ' km';
+    } else {
+      $('distancia').textContent = 'Sin GPS';
+    }
   }
 
   async function leer() {
@@ -90,10 +219,10 @@
       if (!r.ok) throw new Error(r.status);
       ultimo = await r.json();
       $('red').textContent = 'En línea';
-      $('red').className = 'etiqueta si';
+      $('red').className = 'pastilla si';
     } catch (err) {
       $('red').textContent = 'Sin conexión';
-      $('red').className = 'etiqueta no';
+      $('red').className = 'pastilla no';
     }
     // También sin internet: lo que deja de actualizarse tiene que pasar a rojo
     pintar(ultimo);
@@ -103,7 +232,7 @@
   if (CLAVE.length < 24) {
     $('aviso').hidden = false;
     $('aviso').textContent = 'Abre esta página con tu enlace completo.';
-    $('red').textContent = '';
+    $('red').hidden = true;
   } else {
     leer();
     setInterval(leer, CADA_MS);
