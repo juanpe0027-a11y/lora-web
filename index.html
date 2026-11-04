@@ -13,6 +13,7 @@
     :root { --fondo:#f4f6f8; --tarjeta:#ffffff; --tarjeta2:#eef1f4; --borde:#d9dee4; --texto:#1b222a; --suave:#5d6875; --verde:#1a7f37; --verde-f:#dcf5e3; --rojo:#c9302a; --rojo-f:#fde5e4; --naranja:#a8620a; --naranja-f:#fbedd8; --azul:#0969da; }
   }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  [hidden] { display:none !important; }
   body { margin:0; background:var(--fondo); color:var(--texto); font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
   main { max-width:760px; margin:0 auto; padding:16px 16px 32px; display:grid; gap:12px; grid-template-columns:minmax(0,1fr); }
   header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:4px 2px 6px; }
@@ -30,7 +31,8 @@
   .voltios small { font-size:24px; font-weight:650; margin-left:3px; }
   .barra { height:8px; border-radius:9px; background:var(--tarjeta2); overflow:hidden; margin-top:12px; }
   .barra i { display:block; height:100%; width:0; border-radius:9px; transition:width .4s; }
-  .escala { display:flex; justify-content:space-between; color:var(--suave); font-size:12px; margin-top:5px; font-variant-numeric:tabular-nums; }
+  .escala { position:relative; display:flex; justify-content:space-between; color:var(--suave); font-size:12px; margin-top:5px; font-variant-numeric:tabular-nums; }
+  .escala .marca { position:absolute; left:39.5%; transform:translateX(-50%); }
   .estado-bat { font-size:15px; font-weight:650; }
   .rele { display:flex; align-items:center; justify-content:space-between; gap:14px; }
   .rele-estado { font-size:26px; font-weight:750; }
@@ -74,7 +76,7 @@
       <div class="estado-bat" id="estado-bat"></div>
     </div>
     <div class="barra" aria-hidden="true"><i id="barra"></i></div>
-    <div class="escala" aria-hidden="true"><span>10,5 V</span><span>12,2 V</span><span>14,8 V</span></div>
+    <div class="escala" aria-hidden="true"><span>10,5 V</span><span class="marca">12,2 V</span><span>14,8 V</span></div>
   </section>
   <section class="tarjeta ancho" aria-labelledby="t-rele">
     <div class="rele">
