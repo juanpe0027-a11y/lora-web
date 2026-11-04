@@ -115,7 +115,7 @@
       textoLora = '<span class="' + calidad[1] + '">' + lora + ' dB · ' + calidad[0] + '</span>' + rayas(rayasLora(lora));
     }
     let textoWifi = ok ? 'Por LoRa' : 'Sin datos';
-    if (ok && d.rssi_wifi) textoWifi = 'Conectado' + rayas(rayasWifi(d.rssi_wifi));
+    if (d && d.wifi_hora && Date.now() - d.wifi_hora < CONECTADO_MS) textoWifi = 'Conectado' + rayas(rayasWifi(d.rssi_wifi));
     let gps = 'Sin conectar';
     if (d && d.gps) gps = d.fix ? d.sats + ' satélites · ' + Math.round(d.vel || 0) + ' km/h' : 'Buscando · ' + d.sats + ' satélites';
     const corriente = d && d.placa_v ? 'Batería ' + Number(d.placa_v).toFixed(2) + ' V' : 'USB';
